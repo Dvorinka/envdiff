@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Dvorinka/envdiff/internal"
 )
@@ -29,6 +30,15 @@ Usage:
 Targets: local (default), net://host, ssh://[user@]host, file://snapshot.json
 Exit codes: 0 clean, 1 warnings, 2 critical, 5 error.
 `
+
+// flagTakesValue reports whether a flag name expects a value argument.
+func flagTakesValue(name string) bool {
+	switch strings.TrimLeft(name, "-") {
+	case "target", "out", "root", "config", "baseline":
+		return true
+	}
+	return false
+}
 
 func fail(err error) {
 	fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -60,7 +70,22 @@ func main() {
 	root := fs.String("root", ".", "repo root for Tier-2 probes")
 	config := fs.String("config", "", "path to .envdiff.yml")
 	baseline := fs.String("baseline", "", "known-good snapshot to diff the target against (check)")
-	if err := fs.Parse(os.Args[2:]); err != nil {
+	// flags may come after positional args (diff a.json b.json --json)
+	argv := append([]string{}, os.Args[2:]...)
+	var flags, pos []string
+	for i := 0; i < len(argv); i++ {
+		a := argv[i]
+		if strings.HasPrefix(a, "-") {
+			flags = append(flags, a)
+			if !strings.Contains(a, "=") && i+1 < len(argv) && flagTakesValue(a) {
+				i++
+				flags = append(flags, argv[i])
+			}
+		} else {
+			pos = append(pos, a)
+		}
+	}
+	if err := fs.Parse(append(flags, pos...)); err != nil {
 		os.Exit(5)
 	}
 	abs, err := filepath.Abs(*root)

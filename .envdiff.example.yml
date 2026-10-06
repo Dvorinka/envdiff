@@ -1,0 +1,29 @@
+# envdiff manifest example — declared expectations for `envdiff check`.
+# Every section is optional; undeclared sections are skipped.
+
+dns:
+  - record: app.example.com
+    type: A
+    expect: "93.184.216.34"
+
+tls:
+  - host: app.example.com
+    min_expiry_days: 30
+
+ports:
+  - { host: app.example.com, port: 443, expect: open }
+  - { host: app.example.com, port: 22, expect: open }
+
+http:
+  - url: https://app.example.com/health
+    expect_status: 200
+    expect_body_contains: '"ok"'
+
+env_keys: [DATABASE_URL, AUTH_SECRET]
+
+docker:
+  - image: ghcr.io/dvorinka/relay:latest   # digest: sha256:... to pin
+
+versions:
+  go: "1.2"
+  node: "22"

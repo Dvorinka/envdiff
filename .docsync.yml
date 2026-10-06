@@ -1,0 +1,4 @@
+# .env, .env.example, .envdiff.yml are subject-matter prose mentions,
+# not paths this repo must contain. The example manifest is
+# .envdiff.example.yml.
+ignore: [".env", ".env.example", ".envdiff.yml"]
