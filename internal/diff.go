@@ -403,6 +403,23 @@ func diffDisk(a, b Snapshot) []Finding {
 	return fs
 }
 
+// MergeBaseline folds baseline-diff findings into a check result.
+// Findings where the baseline and target agree (severity "ok") are
+// dropped — a matching environment is not news.
+func MergeBaseline(res DiffResult, bl DiffResult) DiffResult {
+	for _, f := range bl.Findings {
+		if f.Severity == "ok" {
+			continue
+		}
+		f.Expectation = f.A
+		f.Observed = f.B
+		res.Findings = append(res.Findings, f)
+	}
+	SortFindings(res.Findings)
+	res.Summary = summarize(res.Findings)
+	return res
+}
+
 func equalStringSets(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

@@ -117,3 +117,31 @@ func TestSnapshotNoPlaintext(t *testing.T) {
 		t.Error("plaintext secret leaked into snapshot")
 	}
 }
+
+func TestBaselineMerge(t *testing.T) {
+	// snapshot_b has drift vs snapshot_a — baseline check should surface it
+	a, err := internal.ReadSnapshot(td(t, "snapshot_a.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := internal.ReadSnapshot(td(t, "snapshot_b.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	bl := internal.Diff(a, b)
+	res := internal.MergeBaseline(internal.DiffResult{}, bl)
+	if res.Summary.Critical == 0 {
+		t.Fatal("baseline drift should produce critical findings")
+	}
+	for _, f := range res.Findings {
+		if f.Severity == "ok" {
+			t.Fatalf("ok findings shouldn't survive baseline merge: %+v", f)
+		}
+	}
+	// identical snapshots → nothing to report
+	same := internal.Diff(a, a)
+	res = internal.MergeBaseline(internal.DiffResult{}, same)
+	if res.Summary.Total != 0 {
+		t.Fatalf("identical baseline should be quiet, got %d", res.Summary.Total)
+	}
+}

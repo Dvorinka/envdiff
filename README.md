@@ -108,14 +108,20 @@ don't abort the scan.
 Compares two snapshots into a severity-ranked report. Works on saved
 snapshots — no live access needed.
 
-### `envdiff check [--target <spec>] [--json]`
+### `envdiff check [--target <spec>] [--baseline <snapshot.json>] [--json]`
 
 The CI gate. Reads `.envdiff.yml`, probes the target, evaluates every
 expectation.
 
+`--baseline known-good.json` additionally diffs the target against a
+saved snapshot: anything that changed relative to a captured good state
+fires as a finding (`expectation` = baseline value, `observed` = live
+value). No manifest required — "match prod's known-good state" is a
+complete contract by itself.
+
 Exit codes: `0` all pass · `1` warnings · `2` critical drift ·
 `5` operational/config error (ssh failure, malformed manifest, malformed
-snapshot).
+snapshot or baseline).
 
 ### `envdiff probe <dns|tls|port|http> <args...> [--json]`
 
@@ -127,6 +133,8 @@ envdiff probe tls app.example.com 443
 envdiff probe port app.example.com 443
 envdiff probe http https://app.example.com/health '"ok"'
 ```
+
+`envdiff version` prints the binary version.
 
 ## Probe catalog
 

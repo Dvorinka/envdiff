@@ -13,13 +13,17 @@ import (
 	"github.com/Dvorinka/envdiff/internal"
 )
 
+// version is stamped at release: -ldflags "-X main.version=v0.1.0".
+var version = "dev"
+
 const usage = `envdiff — environment discrepancy detector
 
 Usage:
   envdiff scan  [--target <spec>] [--out <file>] [--root <dir>]
   envdiff diff  <a.json> <b.json> [--json]
-  envdiff check [--target <spec>] [--config <file>] [--root <dir>] [--json]
+  envdiff check [--target <spec>] [--config <file>] [--baseline <snapshot.json>] [--root <dir>] [--json]
   envdiff probe <dns|tls|port|http> <args...> [--json]
+  envdiff version
 
 Targets: local (default), net://host, ssh://[user@]host, file://snapshot.json
 Exit codes: 0 clean, 1 warnings, 2 critical, 5 error.
@@ -36,12 +40,17 @@ func main() {
 		os.Exit(5)
 	}
 	cmd := os.Args[1]
+	if cmd == "version" || cmd == "--version" || cmd == "-version" {
+		fmt.Println("envdiff", version)
+		return
+	}
 	fs := flag.NewFlagSet(cmd, flag.ContinueOnError)
 	jsonOut := fs.Bool("json", false, "machine-readable output")
 	target := fs.String("target", "local", "scan/check target spec")
 	out := fs.String("out", "", "output file for scan (default stdout)")
 	root := fs.String("root", ".", "repo root for Tier-2 probes")
 	config := fs.String("config", "", "path to .envdiff.yml")
+	baseline := fs.String("baseline", "", "known-good snapshot to diff the target against (check)")
 	if err := fs.Parse(os.Args[2:]); err != nil {
 		os.Exit(5)
 	}
@@ -94,6 +103,13 @@ func main() {
 			fail(err)
 		}
 		res := internal.Check(abs, m, s)
+		if *baseline != "" {
+			base, err := internal.ReadSnapshot(*baseline)
+			if err != nil {
+				fail(fmt.Errorf("invalid baseline snapshot: %w", err))
+			}
+			res = internal.MergeBaseline(res, internal.Diff(base, s))
+		}
 		if *jsonOut {
 			internal.WriteJSON(os.Stdout, res)
 		} else {
