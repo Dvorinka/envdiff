@@ -70,6 +70,10 @@ installed or written on the remote host.
 ## Quick Start
 
 ```bash
+# one-liner — latest release binary to ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/Dvorinka/envdiff/main/install.sh | sh
+
+# or from source
 go install github.com/Dvorinka/envdiff/cmd/envdiff@latest
 ```
 
