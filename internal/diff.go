@@ -138,6 +138,8 @@ func Diff(a, b Snapshot) DiffResult {
 	fs = append(fs, diffListeners(a, b)...)
 	// env_file key sets
 	fs = append(fs, diffEnvFile(a, b)...)
+	// k8s workload env references
+	fs = append(fs, diffK8s(a, b)...)
 	// disk pressure
 	fs = append(fs, diffDisk(a, b)...)
 
@@ -371,6 +373,41 @@ func diffEnvFile(a, b Snapshot) []Finding {
 	for _, k := range a.EnvFile.OrphanInExample {
 		fs = append(fs, diff("warning", "env_file", k, "in .env.example", "not in .env",
 			fmt.Sprintf("%s: %s orphaned in .env.example", a.Target, k)))
+	}
+	return fs
+}
+
+// diffK8s compares workload env references: same workload on both sides
+// should declare the same env/secret/configmap names.
+func diffK8s(a, b Snapshot) []Finding {
+	var fs []Finding
+	if a.K8s == nil || b.K8s == nil {
+		return fs
+	}
+	names := map[string]bool{}
+	for w := range a.K8s {
+		names[w] = true
+	}
+	for w := range b.K8s {
+		names[w] = true
+	}
+	for _, w := range sortedKeys(names) {
+		ra, inA := a.K8s[w]
+		rb, inB := b.K8s[w]
+		switch {
+		case !inA:
+			fs = append(fs, diff("warning", "k8s_env", w, "(absent)", "present",
+				"workload not in "+a.Target))
+		case !inB:
+			fs = append(fs, diff("warning", "k8s_env", w, "present", "(absent)",
+				"workload not in "+b.Target))
+		case equalStringSets(ra, rb):
+			fs = append(fs, diff("ok", "k8s_env", w,
+				fmt.Sprintf("%d refs", len(ra)), fmt.Sprintf("%d refs", len(rb)), "match"))
+		default:
+			fs = append(fs, diff("warning", "k8s_env", w,
+				strings.Join(ra, ","), strings.Join(rb, ","), "env references differ"))
+		}
 	}
 	return fs
 }

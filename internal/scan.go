@@ -87,6 +87,7 @@ func scanLocalFiles(s *Snapshot, root string) {
 	s.EnvFile = probes.EnvFiles(root)
 	s.Compose = probes.Compose(root)
 	s.CISecrets = probes.CISecrets(root)
+	s.K8s = probes.K8sManifests(root)
 }
 
 func applyFacts(s *Snapshot, f probes.RemoteFacts) {

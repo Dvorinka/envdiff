@@ -24,6 +24,7 @@ Usage:
   envdiff check [--target <spec>] [--config <file>] [--baseline <snapshot.json>] [--root <dir>] [--json]
   envdiff probe <dns|tls|port|http> <args...> [--json]
   envdiff version
+  envdiff completion <bash|zsh|fish>
 
 Targets: local (default), net://host, ssh://[user@]host, file://snapshot.json
 Exit codes: 0 clean, 1 warnings, 2 critical, 5 error.
@@ -42,6 +43,14 @@ func main() {
 	cmd := os.Args[1]
 	if cmd == "version" || cmd == "--version" || cmd == "-version" {
 		fmt.Println("envdiff", version)
+		return
+	}
+	if cmd == "completion" && len(os.Args) >= 3 {
+		s, err := internal.Completion(os.Args[2])
+		if err != nil {
+			fail(err)
+		}
+		fmt.Print(s)
 		return
 	}
 	fs := flag.NewFlagSet(cmd, flag.ContinueOnError)

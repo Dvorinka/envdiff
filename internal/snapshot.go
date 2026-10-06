@@ -32,6 +32,7 @@ type Snapshot struct {
 	EnvFile   *probes.EnvFileResult `json:"env_file,omitempty"`
 	Compose   *probes.ComposeResult `json:"compose,omitempty"`
 	CISecrets []string              `json:"ci_secrets,omitempty"`
+	K8s       probes.K8sEnv         `json:"k8s,omitempty"`
 }
 
 // WriteSnapshot serializes a snapshot to disk (or stdout when path is "-").

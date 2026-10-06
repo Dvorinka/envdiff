@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -143,5 +144,48 @@ func TestBaselineMerge(t *testing.T) {
 	res = internal.MergeBaseline(internal.DiffResult{}, same)
 	if res.Summary.Total != 0 {
 		t.Fatalf("identical baseline should be quiet, got %d", res.Summary.Total)
+	}
+}
+
+func TestK8sManifests(t *testing.T) {
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, "deploy"), 0o755)
+	manifest := `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+      - name: api
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-creds
+              key: url
+        - name: LOG_LEVEL
+          value: info
+        envFrom:
+        - secretRef:
+            name: shared-secrets
+`
+	os.WriteFile(filepath.Join(root, "deploy/api.yaml"), []byte(manifest), 0o644)
+	// non-k8s yaml must be ignored
+	os.WriteFile(filepath.Join(root, "deploy/other.yaml"), []byte("foo: bar\n"), 0o644)
+	k := probes.K8sManifests(root)
+	refs := k["Deployment/api"]
+	if len(refs) == 0 {
+		t.Fatal("no refs extracted")
+	}
+	joined := strings.Join(refs, ",")
+	for _, want := range []string{"env:DATABASE_URL", "secret:db-creds/url", "env:LOG_LEVEL", "secret:shared-secrets"} {
+		if !strings.Contains(joined, want) {
+			t.Fatalf("missing %q in %v", want, refs)
+		}
+	}
+	if _, ok := k["foo"]; ok {
+		t.Fatal("non-workload yaml leaked in")
 	}
 }

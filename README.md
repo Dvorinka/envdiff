@@ -45,7 +45,7 @@ MX-on-apex-class bugs in one CI run instead of three rounds of manual
 |---|---|---|---|
 | 0 | `net://host` | none — just network | DNS, TLS, ports, HTTP endpoints |
 | 1 | `ssh://host` | ssh | remote env keys (hashed), runtime versions, docker, listeners, disk |
-| 2 | `local` / files | none | `.env`, `.env.example`, compose, CI secret references |
+| 2 | `local` / files | none | `.env`, `.env.example`, compose, CI secret references, Kubernetes manifest env refs |
 
 Tier 2 runs in CI with zero credentials. Tier 1 executes a read-only
 generated shell script piped through `ssh host sh -s` — nothing is
@@ -135,6 +135,7 @@ envdiff probe http https://app.example.com/health '"ok"'
 ```
 
 `envdiff version` prints the binary version.
+`envdiff completion <bash|zsh|fish>` prints a completion script.
 
 ## Probe catalog
 
@@ -155,7 +156,8 @@ and `set -euo pipefail`.
 
 **Tier 2 — local files:** `.env` vs `.env.example` (presence + hash),
 `docker-compose*.yml` service env, `.github/workflows/*` secret
-references.
+references, Kubernetes workload env (`env:`, `secretKeyRef`,
+`configMapKeyRef`, `envFrom` — names only, diffed as `k8s_env`).
 
 ## The `.envdiff.yml` manifest
 
