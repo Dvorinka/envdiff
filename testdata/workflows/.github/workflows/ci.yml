@@ -1,0 +1,14 @@
+name: ci
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_WEBHOOK_SECRET: ${{ secrets.RESEND_WEBHOOK_SECRET }}
+        run: ./deploy.sh
+      - uses: some/action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          key: ${{ secrets.VPS_SSH_KEY }}

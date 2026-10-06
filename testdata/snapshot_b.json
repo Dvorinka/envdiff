@@ -1,0 +1,15 @@
+{
+  "target": "local",
+  "scanned_at": "2025-01-15T10:35:00Z",
+  "tier": "local",
+  "dns": [
+    {"record": "app.invico.org", "type": "A", "values": ["57.131.194.151"], "resolver": "system", "divergent": false}
+  ],
+  "tls": [
+    {"host": "app.invico.org", "valid": true, "expiry_days": 12, "subject": "CN=app.invico.org", "issuer": "CN=R13", "sans": ["app.invico.org"]}
+  ],
+  "env_keys": [
+    {"key": "JWT_SECRET", "hash": "f0e1d2c3b4a59687"}
+  ],
+  "versions": {"go": "1.24.0", "node": "24.1.0", "docker": "27.3.1"}
+}

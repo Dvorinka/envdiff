@@ -1,0 +1,16 @@
+{
+  "target": "ssh://staging",
+  "scanned_at": "2025-01-15T10:30:00Z",
+  "tier": "ssh",
+  "dns": [
+    {"record": "app.invico.org", "type": "A", "values": ["57.131.194.151"], "resolver": "system", "divergent": false}
+  ],
+  "tls": [
+    {"host": "app.invico.org", "valid": true, "expiry_days": 287, "subject": "CN=app.invico.org", "issuer": "CN=R13", "sans": ["app.invico.org"]}
+  ],
+  "env_keys": [
+    {"key": "DATABASE_URL", "hash": "a1b2c3d4e5f67890"},
+    {"key": "JWT_SECRET", "hash": "f0e1d2c3b4a59687"}
+  ],
+  "versions": {"go": "1.23.4", "node": "24.1.0", "docker": "27.3.1"}
+}

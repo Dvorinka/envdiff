@@ -1,0 +1,16 @@
+services:
+  api:
+    image: ghcr.io/dvorinka/invico-api:latest
+    environment:
+      - DATABASE_URL
+      - JWT_SECRET=dev
+    ports:
+      - "8080:8080"
+  web:
+    image: ghcr.io/dvorinka/invico-web:latest
+    ports:
+      - 3000
+  worker:
+    image: ghcr.io/dvorinka/invico-worker:latest
+    environment:
+      REDIS_HOST: localhost

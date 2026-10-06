@@ -1,0 +1,4 @@
+/envdiff
+*.test
+coverage.*
+dist/
